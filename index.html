@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Safety Talent Pipeline — Ecosystem Map & Gap Analysis</title>
+    <style>
+        :root {
+            --bg: #f5f6fa;
+            --card: #ffffff;
+            --header-bg: #0f172a;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --text-on-dark: #f1f5f9;
+            --accent: #3b82f6;
+            --stage1: #6366f1;
+            --stage2: #0ea5e9;
+            --stage3: #10b981;
+            --stage4: #f59e0b;
+            --gap-red: #fee2e2;
+            --gap-red-border: #fca5a5;
+            --gap-yellow: #fef9c3;
+            --gap-yellow-border: #fde047;
+            --gap-green: #dcfce7;
+            --gap-green-border: #86efac;
+            --radius: 10px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif; background:var(--bg); color:var(--text); line-height:1.5; }
+
+        .container { max-width:1440px; margin:0 auto; padding:20px; }
+
+        /* Header */
+        .header { background:var(--header-bg); color:var(--text-on-dark); padding:28px 32px; border-radius:var(--radius); margin-bottom:20px; }
+        .header h1 { font-size:22px; font-weight:700; margin-bottom:4px; }
+        .header p { font-size:14px; color:#94a3b8; max-width:800px; }
+        .header-meta { display:flex; gap:24px; margin-top:14px; flex-wrap:wrap; }
+        .header-meta span { font-size:12px; color:#94a3b8; background:rgba(255,255,255,0.06); padding:4px 12px; border-radius:20px; }
+
+        /* Filters */
+        .filter-bar { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:20px; background:var(--card); padding:14px 20px; border-radius:var(--radius); box-shadow:var(--shadow); }
+        .filter-bar label { font-size:12px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; }
+        .filter-group { display:flex; align-items:center; gap:6px; }
+        .filter-bar select { padding:6px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:13px; background:#fff; color:var(--text); cursor:pointer; }
+        .filter-bar select:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 2px rgba(59,130,246,0.15); }
+        .legend { display:flex; gap:16px; margin-left:auto; flex-wrap:wrap; }
+        .legend-item { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--text-secondary); }
+        .legend-dot { width:12px; height:12px; border-radius:3px; }
+
+        /* KPI Row */
+        .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
+        .kpi-card { background:var(--card); padding:18px 22px; border-radius:var(--radius); box-shadow:var(--shadow); border-left:4px solid transparent; }
+        .kpi-card.stage1 { border-left-color:var(--stage1); }
+        .kpi-card.stage2 { border-left-color:var(--stage2); }
+        .kpi-card.stage3 { border-left-color:var(--stage3); }
+        .kpi-card.stage4 { border-left-color:var(--stage4); }
+        .kpi-label { font-size:11px; text-transform:uppercase; letter-spacing:0.6px; color:var(--text-secondary); font-weight:600; }
+        .kpi-value { font-size:32px; font-weight:700; margin:2px 0; }
+        .kpi-sub { font-size:12px; color:var(--text-secondary); }
+
+        /* Matrix */
+        .matrix-section { margin-bottom:24px; }
+        .matrix-section h2 { font-size:16px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+        .matrix-section h2 .badge { font-size:11px; padding:2px 10px; border-radius:20px; color:#fff; font-weight:600; }
+        .stage1-badge { background:var(--stage1); }
+        .stage2-badge { background:var(--stage2); }
+        .stage3-badge { background:var(--stage3); }
+        .stage4-badge { background:var(--stage4); }
+
+        .matrix-grid { display:grid; grid-template-columns:140px repeat(3,1fr); gap:2px; background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; }
+        .matrix-header { background:#f1f5f9; padding:12px 16px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary); display:flex; align-items:center; }
+        .matrix-row-label { background:#f8fafc; padding:12px 16px; font-size:13px; font-weight:600; color:var(--text); display:flex; align-items:center; border-right:2px solid #e2e8f0; }
+        .matrix-cell { padding:12px; min-height:90px; position:relative; }
+        .matrix-cell.gap-critical { background:var(--gap-red); }
+        .matrix-cell.gap-partial { background:var(--gap-yellow); }
+        .matrix-cell.gap-covered { background:var(--gap-green); }
+        .matrix-cell.gap-na { background:#f1f5f9; opacity:0.5; }
+
+        .program-tag { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:5px; font-size:11px; font-weight:500; margin:2px; cursor:pointer; transition:all 0.15s; line-height:1.4; }
+        .program-tag:hover { transform:translateY(-1px); box-shadow:0 2px 6px rgba(0,0,0,0.12); }
+        .program-tag.geo-uk { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
+        .program-tag.geo-us { background:#dbeafe; color:#1e40af; border:1px solid #93c5fd; }
+        .program-tag.geo-eu { background:#dcfce7; color:#166534; border:1px solid #86efac; }
+        .program-tag.geo-global { background:#ede9fe; color:#5b21b6; border:1px solid #ddd6fe; }
+        .program-tag .geo { font-size:9px; opacity:0.7; }
+
+        .gap-label { position:absolute; bottom:6px; right:8px; font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.3px; opacity:0.6; }
+        .gap-critical .gap-label { color:#991b1b; }
+        .gap-partial .gap-label { color:#854d0e; }
+
+        /* Tooltip */
+        .tooltip { display:none; position:fixed; background:#1e293b; color:#f1f5f9; padding:12px 16px; border-radius:8px; font-size:12px; max-width:320px; z-index:1000; box-shadow:0 10px 25px rgba(0,0,0,0.2); line-height:1.6; pointer-events:none; }
+        .tooltip .tt-name { font-weight:700; font-size:13px; margin-bottom:4px; }
+        .tooltip .tt-detail { color:#94a3b8; }
+        .tooltip .tt-link { color:#93c5fd; }
+
+        /* Gap Analysis Section */
+        .gap-analysis { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:24px 28px; margin-bottom:20px; }
+        .gap-analysis h2 { font-size:16px; font-weight:700; margin-bottom:16px; }
+        .gap-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(340px,1fr)); gap:14px; }
+        .gap-card { padding:16px; border-radius:8px; border:1px solid; }
+        .gap-card.critical { background:var(--gap-red); border-color:var(--gap-red-border); }
+        .gap-card.partial { background:var(--gap-yellow); border-color:var(--gap-yellow-border); }
+        .gap-card h3 { font-size:14px; font-weight:600; margin-bottom:6px; }
+        .gap-card p { font-size:13px; color:#475569; }
+        .gap-card .gap-type { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+        .gap-card.critical .gap-type { color:#991b1b; }
+        .gap-card.partial .gap-type { color:#854d0e; }
+
+        /* LISA Opportunity Section */
+        .lisa-section { background:linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); color:#e0e7ff; border-radius:var(--radius); padding:28px 32px; margin-bottom:20px; }
+        .lisa-section h2 { color:#fff; font-size:18px; margin-bottom:16px; }
+        .lisa-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px; }
+        .lisa-card { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:16px; }
+        .lisa-card h3 { font-size:14px; color:#c7d2fe; font-weight:600; margin-bottom:6px; }
+        .lisa-card p { font-size:13px; color:#a5b4fc; line-height:1.6; }
+        .lisa-card .stage-badge { display:inline-block; font-size:10px; padding:2px 8px; border-radius:12px; font-weight:600; margin-bottom:8px; }
+
+        /* Detail Table */
+        .table-section { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; margin-bottom:20px; overflow-x:auto; }
+        .table-section h2 { font-size:16px; font-weight:700; margin-bottom:14px; padding:0 8px; }
+        table { width:100%; border-collapse:collapse; font-size:12px; }
+        thead th { text-align:left; padding:10px 12px; border-bottom:2px solid #e2e8f0; color:var(--text-secondary); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; white-space:nowrap; user-select:none; }
+        thead th:hover { color:var(--text); background:#f8fafc; }
+        tbody td { padding:10px 12px; border-bottom:1px solid #f1f5f9; }
+        tbody tr:hover { background:#f8fafc; }
+        .stage-pill { display:inline-block; padding:2px 10px; border-radius:12px; font-size:10px; font-weight:600; color:#fff; }
+        .stage-pill.s1 { background:var(--stage1); }
+        .stage-pill.s2 { background:var(--stage2); }
+        .stage-pill.s3 { background:var(--stage3); }
+        .stage-pill.s4 { background:var(--stage4); }
+        .type-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px; }
+        .type-dot.geo-uk { background:#dc2626; }
+        .type-dot.geo-us { background:#2563eb; }
+        .type-dot.geo-eu { background:#16a34a; }
+        .type-dot.geo-global { background:#7c3aed; }
+
+        /* Footer */
+        .footer { text-align:center; padding:20px; font-size:12px; color:var(--text-secondary); }
+        .footer a { color:var(--accent); text-decoration:none; }
+
+        /* Responsive */
+        @media (max-width:900px) {
+            .kpi-row { grid-template-columns:repeat(2,1fr); }
+            .matrix-grid { grid-template-columns:100px repeat(3,1fr); font-size:11px; }
+            .program-tag { font-size:10px; padding:2px 6px; }
+        }
+        @media (max-width:600px) {
+            .kpi-row { grid-template-columns:1fr; }
+        }
+        @media print {
+            body { background:#fff; }
+            .filter-bar { display:none; }
+            .matrix-cell { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1>AI Safety Talent Pipeline — Ecosystem Map & Gap Analysis</h1>
+        <p>Mapping existing field-building initiatives in AI Safety across the talent pipeline, career stages, and commitment levels. Gaps highlighted to identify where LISA-run programs can have the highest marginal impact.</p>
+        <div class="header-meta">
+            <span>Last updated: April 2026</span>
+            <span>Distinct orgs/initiatives: <span id="program-count">0</span></span>
+            <span>Critical gaps identified: <span id="gap-count">0</span></span>
+            <span>Draft: for discussion</span>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+        <div class="filter-group">
+            <label>Talent Type</label>
+            <select id="filter-type" onchange="applyFilters()">
+                <option value="all">All Types</option>
+                <option value="technical">Technical Only</option>
+                <option value="non-technical">Non-Technical Only</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Geography</label>
+            <select id="filter-geo" onchange="applyFilters()">
+                <option value="all">Global</option>
+                <option value="UK">UK</option>
+                <option value="US">US</option>
+                <option value="Europe">Europe</option>
+                <option value="Online">Online / Remote</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Commitment</label>
+            <select id="filter-commitment" onchange="applyFilters()">
+                <option value="all">All Levels</option>
+                <option value="Newcomer">Newcomer</option>
+                <option value="Explorer">Explorer</option>
+                <option value="Committed">Committed</option>
+            </select>
+        </div>
+        <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#fee2e2;border:1px solid #fca5a5"></div> UK</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#dbeafe;border:1px solid #93c5fd"></div> US</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#dcfce7;border:1px solid #86efac"></div> EU</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ede9fe;border:1px solid #ddd6fe"></div> Online / Global</div>
+            <div style="border-left:1px solid #e2e8f0;margin:0 8px"></div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--gap-green)"></div> Well-covered</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--gap-yellow)"></div> Partial coverage</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--gap-red)"></div> Critical gap</div>
+        </div>
+    </div>
+
+    <!-- KPI Row -->
+    <div class="kpi-row">
+        <div class="kpi-card stage1">
+            <div class="kpi-label">Stage 1 — Awareness</div>
+            <div class="kpi-value" id="kpi-s1">0</div>
+            <div class="kpi-sub">orgs active</div>
+        </div>
+        <div class="kpi-card stage2">
+            <div class="kpi-label">Stage 2 — Educate</div>
+            <div class="kpi-value" id="kpi-s2">0</div>
+            <div class="kpi-sub">orgs active</div>
+        </div>
+        <div class="kpi-card stage3">
+            <div class="kpi-label">Stage 3 — Train</div>
+            <div class="kpi-value" id="kpi-s3">0</div>
+            <div class="kpi-sub">orgs active</div>
+        </div>
+        <div class="kpi-card stage4">
+            <div class="kpi-label">Stage 4 — Mobilize</div>
+            <div class="kpi-value" id="kpi-s4">0</div>
+            <div class="kpi-sub">orgs active</div>
+        </div>
+    </div>
+
+    <!-- Matrix Sections -->
+    <div id="matrix-container"></div>
+
+    <!-- Gap Analysis -->
+    <div class="gap-analysis" id="gap-section">
+        <h2>Key Gaps Identified</h2>
+        <div class="gap-grid" id="gap-grid"></div>
+    </div>
+
+    <!-- LISA Opportunities -->
+    <div class="lisa-section">
+        <h2>Where We Can Come In</h2>
+        <ul style="list-style:disc;padding-left:24px;font-size:14px;color:#e0e7ff;line-height:2;">
+            <li>Awareness → Mid-career, Newcomer (non-technical)</li>
+            <li>Awareness → Senior, Newcomer (both)</li>
+            <li>Educate → Mid-career, Explorer (non-technical)</li>
+            <li>Train → Mid-career, Explorer/Committed (non-technical)</li>
+            <li>Train → Mid-career, Explorer/Committed (technical, weekend formats)</li>
+            <li>Train → Senior, any commitment level</li>
+            <li>Mobilize → Mid-career, Explorer (active placement / contracting)</li>
+            <li>Mobilize → Mid-career, Committed (structured on-ramps beyond grants)</li>
+            <li>Mobilize → Senior, any commitment level</li>
+        </ul>
+    </div>
+
+    <!-- Detail Table -->
+    <div class="table-section">
+        <h2>Full Program Directory</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th onclick="sortTable('name')">Program</th>
+                    <th onclick="sortTable('org')">Organization</th>
+                    <th onclick="sortTable('stage')">Pipeline Stage</th>
+                    <th onclick="sortTable('career')">Career Stage</th>
+                    <th onclick="sortTable('commitment')">Commitment Level</th>
+                    <th onclick="sortTable('talentType')">Talent Type</th>
+                    <th onclick="sortTable('geo')">Geography</th>
+                    <th onclick="sortTable('format')">Format</th>
+                </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+<a href="https://aisafety.com/map" target="_blank">See also: AISafety.com field map</a>
+    </div>
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────
+// Programs consolidated by organization. stage is now an array to avoid
+// double-counting orgs that span the pipeline.
+const PROGRAMS = [
+    // ═══ STAGE 1: AWARENESS ═══
+    { name:"80,000 Hours", org:"80,000 Hours", stage:["Awareness"], career:["Early","Mid"], commitment:["Newcomer"], talentType:"both", geo:"Online", format:"Career guides, podcast, reading lists", url:"https://80000hours.org/ai/", desc:"Career advice platform with AI safety career guides, reading lists, and podcast. Primary entry point for many newcomers — but content skews early-career and research-oriented. Serves awareness only; not active education or mobilization." },
+    { name:"AISafety.com / .info", org:"AISafety.com", stage:["Awareness"], career:["Early","Mid"], commitment:["Newcomer"], talentType:"both", geo:"Online", format:"Field map, wiki/FAQ, job listings", url:"https://aisafety.com/map", desc:"Community hub with an interactive ecosystem map and Q&A wiki (Stampy). Has job listings but these are passive aggregation, not active mobilization. Useful for orientation, not career transition." },
+
+    { name:"CAIS Newsletter", org:"Center for AI Safety", stage:["Awareness"], career:["Early","Mid"], commitment:["Explorer"], talentType:"both", geo:"Online", format:"Newsletter", url:"https://www.safe.ai/", desc:"Widely-read AI safety newsletter covering developments in the field. Keeps explorers informed but doesn't actively educate or train. Primarily early and some mid-career audience." },
+    { name:"AI Safety Camp", org:"AI Safety Camp", stage:["Educate"], career:["Early"], commitment:["Newcomer","Explorer"], talentType:"technical", geo:"Online, Europe", format:"Intro research projects, workshops", url:"https://aisafety.camp", desc:"Structured introductory research projects and workshops for early-career technical talent. Participants actively learn by doing — more than awareness, less than intensive fellowship training." },
+    { name:"EA Global / EAGx", org:"Centre for Effective Altruism", stage:["Awareness"], career:["Early","Mid"], commitment:["Explorer"], talentType:"both", geo:"Global", format:"Conference", url:"https://eaglobal.org", desc:"Large conferences with significant AI safety content. Networking and awareness hub, though attendees typically already have some EA/AI safety exposure. Not AI safety-specific." },
+    { name:"High Impact Professionals (HIP)", org:"High Impact Professionals", stage:["Awareness"], career:["Early","Mid"], commitment:["Explorer"], talentType:"both", geo:"Online", format:"Talent directory, Impact Accelerator", url:"https://www.highimpactprofessionals.org/", desc:"Supports working professionals to maximize their positive impact through a talent directory and an Impact Accelerator Program. Targets mid-career professionals considering high-impact career paths including AI safety." },
+
+    // ═══ STAGE 2: EDUCATE ═══
+    { name:"BlueDot Impact", org:"BlueDot Impact", stage:["Educate"], career:["Early","Mid"], commitment:["Newcomer","Explorer"], talentType:"both", geo:"Online", format:"8-week courses (Alignment + Governance), project sprints", url:"https://bluedot.org/courses", desc:"Largest AI safety education provider. Offers free 8-week courses in technical alignment and governance (7000+ alumni), plus hands-on project sprints. Courses are accessible but lightweight — more structured reading group than intensive training. Strong for newcomers developing initial clarity." },
+    { name:"CAIS ML Safety Course", org:"Center for AI Safety", stage:["Educate"], career:["Early"], commitment:["Explorer"], talentType:"technical", geo:"Online", format:"Self-paced university-level course", url:"https://course.mlsafety.org/", desc:"Free online course covering ML safety topics including robustness, monitoring, alignment, and systemic safety. University-level technical content. Good self-study resource for early-career technical explorers." },
+    { name:"Apart Research", org:"Apart Research", stage:["Educate"], career:["Early","Mid"], commitment:["Explorer"], talentType:"technical", geo:"Online", format:"Research sprints (1-4 weeks)", url:"https://apartresearch.com", desc:"Short-format research sprints on specific AI safety topics. 42+ sprints, 3500+ participants, 22 peer-reviewed publications. Low barrier to entry — good for testing interest in research." },
+    { name:"SPAR", org:"SPAR", stage:["Train"], career:["Early"], commitment:["Newcomer"], talentType:"both", geo:"Online", format:"Part-time semester research program", url:"https://sparai.org/", desc:"Part-time, remote research program pairing aspiring researchers with AI safety professionals. Mentees produce real research output. ~30% of projects in AI policy. One of very few part-time training options." },
+    { name:"SAIGE Pivot Track", org:"Safe AI Germany", stage:["Educate"], career:["Early","Mid"], commitment:["Explorer"], talentType:"both", geo:"Europe", format:"1-on-1 advisory + networking", url:"https://safeaigermany.org/pivot", desc:"Personalized career advisory for professionals pivoting into AI safety. Reviews profiles, identifies entry points, routes to ecosystem partners. One of the only Europe-based pivot support programs." },
+    { name:"FAR.AI Conference", org:"FAR.AI", stage:["Educate"], career:["Mid","Senior"], commitment:["Committed"], talentType:"technical", geo:"Global", format:"Research conference", url:"https://far.ai", desc:"Research conference bringing together AI safety researchers. Primarily educational through talks and workshops, plus networking." },
+    { name:"ML4Good", org:"ML4Good", stage:["Educate"], career:["Early"], commitment:["Newcomer","Explorer"], talentType:"technical", geo:"Global", format:"8-day bootcamps", url:"https://ml4good.org/", desc:"Short intensive AI safety bootcamps run in various locations globally. Low time commitment makes it accessible for newcomers testing interest. Introductory technical content on alignment topics." },
+    { name:"CBAI", org:"Cambridge Boston Alignment Initiative", stage:["Educate"], career:["Early"], commitment:["Explorer"], talentType:"technical", geo:"US, UK (Cambridge)", format:"Student programs, reading groups", url:"https://cbai.ai/", desc:"Student-run initiative at Cambridge and Boston universities running reading groups, workshops, and seminars on AI alignment. Good pipeline from university interest to deeper engagement." },
+    { name:"Cooperative AI Summer School", org:"Cooperative AI Foundation", stage:["Educate"], career:["Early"], commitment:["Explorer"], talentType:"technical", geo:"Global", format:"Annual summer school", url:"https://www.cooperativeai.com/", desc:"Annual summer school bringing together students and early-career researchers to study cooperative AI. Structured educational program bridging game theory and AI safety." },
+
+    // ═══ STAGE 3: TRAIN ═══
+    { name:"MATS", org:"MATS", stage:["Train"], career:["Early"], commitment:["Committed"], talentType:"technical", geo:"US (Berkeley)", format:"10-week intensive fellowship", url:"https://www.matsprogram.org/", desc:"Highly selective research fellowship pairing scholars with top AI safety lab mentors. ~$12k stipend. Strong placement track record. The gold standard for early-career technical training." },
+    { name:"ARENA", org:"ARENA", stage:["Train"], career:["Early"], commitment:["Newcomer"], talentType:"technical", geo:"UK (London, LISA)", format:"4-5 week bootcamp", url:"https://www.arena.education/", desc:"In-person programming bootcamp for technical AI safety skills. Based at LISA in Shoreditch. Runs 2-3 cohorts/year. Engineering-focused complement to research-focused MATS." },
+    { name:"Constellation (Astra + Visiting Researcher)", org:"Constellation Institute", stage:["Train"], career:["Early","Mid"], commitment:["Committed"], talentType:"technical", geo:"US (Berkeley)", format:"3-6 month fellowship + visiting researcher", url:"https://constellation.org/programs/astra", desc:"Offers the Astra Fellowship (3-6 month intensive, early/mid-career, 80%+ placed in AI safety roles) and a Visiting Researcher program for established researchers. Both in Berkeley." },
+    { name:"ERA Fellowship", org:"ERA (at LISA)", stage:["Train"], career:["Early"], commitment:["Committed"], talentType:"technical", geo:"UK (London, LISA)", format:"9-week summer fellowship", url:"https://erasafety.org", desc:"In-person summer research fellowship at LISA covering technical AI safety, governance, or biosecurity. ~£5,000 stipend. Primarily targets early-career researchers." },
+    { name:"GovAI Fellowships", org:"Centre for the Governance of AI", stage:["Train"], career:["Early","Mid"], commitment:["Committed"], talentType:"non-technical", geo:"UK (Oxford/London), US (DC)", format:"3-month fellowships (Research + Applied tracks)", url:"https://www.governance.ai", desc:"Offers Research Track (Oxford/London, £12k) and Applied Track (DC, $18-21k) fellowships in AI governance. Among the very few intensive non-technical training programs. Highly selective." },
+    { name:"OpenAI Safety Fellowship", org:"OpenAI", stage:["Train"], career:["Early","Mid"], commitment:["Committed"], talentType:"technical", geo:"US", format:"~5-month fellowship", url:"https://openai.com/index/introducing-openai-safety-fellowship/", desc:"Fellowship for external researchers in safety evaluation, robustness, and privacy. Sept 2026 - Feb 2027. Industry-embedded training." },
+    { name:"Cooperative AI Research Fellowship", org:"Cooperative AI Foundation", stage:["Train"], career:["Early"], commitment:["Explorer"], talentType:"technical", geo:"South Africa (Cape Town)", format:"3-month full-time", url:"https://www.cai-research-fellowship.com/", desc:"Full-time research fellowship focused on cooperative AI. One of the very few programs outside US/UK hubs." },
+    { name:"IAPS Fellowship", org:"Institute for AI Policy and Strategy", stage:["Train"], career:["Early","Mid"], commitment:["Committed"], talentType:"non-technical", geo:"US (DC)", format:"Policy fellowship", url:"https://www.iaps.ai/fellowship", desc:"Fellowship bridging technical AI safety research and policy implementation. One of few non-technical intensive training options." },
+    { name:"Horizon Fellowship", org:"Horizon Institute for Public Service", stage:["Train"], career:["Early","Mid"], commitment:["Committed"], talentType:"non-technical", geo:"US (DC)", format:"Government placement fellowship", url:"https://horizonpublicservice.org/programs/become-a-fellow/", desc:"Places fellows in US government roles on AI/tech policy. Unique in directly embedding people in government." },
+    { name:"Global AI Safety Fellowship", org:"Global AI Safety Fellowship", stage:["Train"], career:["Early"], commitment:["Committed"], talentType:"technical", geo:"Various", format:"Fellowship", url:"https://globalaisafetyfellowship.com/", desc:"Fellowship building global AI safety research capacity with focus on underrepresented regions." },
+    { name:"CLTR Fellowship", org:"Centre for Long-Term Resilience", stage:["Train"], career:["Mid"], commitment:["Committed"], talentType:"non-technical", geo:"UK (London)", format:"Policy fellowship", url:"https://www.longtermresilience.org/", desc:"UK-based policy fellowship placing fellows in government departments on existential risk policy including AI governance. One of very few mid-career non-technical options." },
+    { name:"LASR Labs", org:"LASR Labs", stage:["Train"], career:["Early"], commitment:["Explorer"], talentType:"technical", geo:"UK (London)", format:"3-month team research program", url:"https://www.lasrlabs.org/", desc:"London-based 3-month team research program in AI safety. Teams work on specific research questions with mentorship. Lower commitment bar than MATS — good for explorers testing research fit." },
+    { name:"Talos Fellowship", org:"Talos", stage:["Train"], career:["Early","Mid"], commitment:["Explorer","Committed"], talentType:"non-technical", geo:"Europe", format:"7-month EU policy careers fellowship", url:"https://talosfellowship.org/", desc:"7-month fellowship focused on EU AI policy careers. One of very few non-technical training programs outside the US/UK hub. Targets professionals pivoting into European AI governance." },
+    { name:"PIBBSS Fellowship", org:"PIBBSS", stage:["Train"], career:["Early"], commitment:["Explorer"], talentType:"technical", geo:"US (Berkeley)", format:"3-month interdisciplinary fellowship", url:"https://www.pibbss.ai/", desc:"3-month interdisciplinary research fellowship bringing perspectives from cognitive science, complex systems, and other fields to AI safety. Unique in welcoming non-standard technical backgrounds." },
+    { name:"Orion AI Governance Initiative", org:"Orion", stage:["Train"], career:["Early"], commitment:["Explorer"], talentType:"non-technical", geo:"UK (London)", format:"Student talent development scheme", url:"https://www.oriongovernance.org/", desc:"London-based talent development scheme equipping outstanding students with knowledge and skills for AI governance. Directly in LISA's geographic orbit." },
+    { name:"MARS", org:"MARS", stage:["Train"], career:["Early"], commitment:["Explorer"], talentType:"technical", geo:"UK (Cambridge)", format:"Part-time mentorship program", url:"https://mars-alignment.org/", desc:"Mentorship for Alignment Research Students — part-time mentorship program based in Cambridge. Pairs students with experienced researchers. Lower commitment than full fellowships." },
+    { name:"Foresight Fellowship", org:"Foresight Institute", stage:["Train"], career:["Early","Mid"], commitment:["Committed"], talentType:"technical", geo:"Global", format:"1-year fellowship", url:"https://foresight.org/fellowship/", desc:"Year-long fellowship for young scientists working on existential risk reduction including AI safety. Longer duration than most programs — enables deeper research development." },
+
+    // ═══ STAGE 4: MOBILIZE ═══
+    { name:"Fellowship Alumni Networks", org:"Various", stage:["Mobilize"], career:["Early"], commitment:["Committed"], talentType:"both", geo:"Global", format:"Alumni communities, Slack groups, warm intros", url:"#", desc:"Alumni networks from major fellowships (MATS, BlueDot, ARENA, ERA, etc.) provide peer connections, informal job referrals, and community support. The primary 'last mile' for committed early-career talent — but unstructured and passive." },
+    { name:"Career Transition Grants", org:"Various (EA Funds, Manifund, Open Phil, SFF)", stage:["Mobilize"], career:["Early","Mid"], commitment:["Explorer"], talentType:"both", geo:"Online", format:"Individual grants, project crowdfunding", url:"https://funds.effectivealtruism.org/", desc:"Funding for individuals via EA Funds grants, Manifund crowdfunding, Open Philanthropy, and SFF. Enables independent research, upskilling, or launching new AI safety projects. Financial on-ramp for explorers considering the leap." },
+    { name:"Open Philanthropy", org:"Open Philanthropy", stage:["Mobilize"], career:["Early","Mid"], commitment:["Committed"], talentType:"both", geo:"Online", format:"Large grants to individuals and orgs", url:"https://www.openphilanthropy.org/", desc:"Major funder of AI safety research and organizations. Provides large grants that enable new orgs and career transitions. Not a talent program per se, but a critical enabler of mobilization." },
+    { name:"Survival and Flourishing Fund", org:"SFF", stage:["Mobilize"], career:["Early","Mid"], commitment:["Committed"], talentType:"both", geo:"Online", format:"Grants to individuals and orgs", url:"https://survivalandflourishing.fund/", desc:"Grant-making fund supporting existential risk reduction including AI safety. Funds individuals and organizations, enabling career transitions and new initiatives." },
+    { name:"Halcyon Futures", org:"Halcyon Futures", stage:["Mobilize"], career:["Mid","Senior"], commitment:["Committed"], talentType:"both", geo:"Global", format:"Leadership matching + project funding", url:"https://halcyonfutures.org/", desc:"Identifies leaders from business, policy, and academia and helps them take on ambitious AI safety projects. One of very few programs specifically targeting mid/senior professionals for active mobilization rather than passive job listings." },
+    { name:"Successif", org:"Successif", stage:["Mobilize"], career:["Mid","Senior"], commitment:["Explorer"], talentType:"both", geo:"Online", format:"Career mentoring, opportunity matching, professional training", url:"https://successif.org/", desc:"Helps professionals transition to high-impact work through market research on impactful jobs, career mentoring, opportunity matching, and professional training. Active mobilization for mid/senior talent." },
+    { name:"Meridian", org:"Meridian", stage:["Mobilize"], career:["Early"], commitment:["Explorer","Committed"], talentType:"both", geo:"UK (Cambridge)", format:"Coworking space + field-building", url:"https://www.meridian.cam/", desc:"Cambridge-based coworking and field-building hub for AI safety. Provides physical infrastructure, community, and networking for early-career talent. Similar model to what LISA provides in London." },
+    { name:"Arcadia Impact", org:"Arcadia Impact", stage:["Train"], career:["Early"], commitment:["Explorer"], talentType:"both", geo:"Online", format:"Skill development projects + training", url:"https://www.arcadiaimpact.org/", desc:"Runs various projects aimed at education and skill development for impactful careers in AI safety. Structured training through hands-on project work." },
+];
+
+// ─── GAP DEFINITIONS ─────────────────────────────────────────────
+const GAPS = [
+    { title:"Mid-career Awareness (Non-Technical)", severity:"critical", stage:"Awareness", career:"Mid", text:"Existing awareness resources (80k, podcasts) are optimized for early-career, curious researchers. Time-poor mid-career professionals in non-technical fields lack tailored entry points that speak to their context and constraints." },
+    { title:"Senior Awareness & Education", severity:"critical", stage:"Awareness", career:"Senior", text:"Almost nothing targets senior professionals specifically. No executive briefings, C-suite focused content, or programs acknowledging the unique constraints and influence of senior talent." },
+    { title:"Mid-career Training (Non-Technical)", severity:"critical", stage:"Train", career:"Mid", text:"The biggest structural gap in the ecosystem. Every major training fellowship (MATS, ARENA, ERA, Astra) is designed for early-career technical researchers. Mid-career non-technical professionals have zero intensive training pathways." },
+    { title:"Mid-career Training (Technical)", severity:"critical", stage:"Train", career:"Mid", text:"Even for technical mid-career professionals, options are thin. Most fellowships assume you can take 3-6 months off work. Weekend/evening intensive formats essentially don't exist for technical upskilling." },
+    { title:"Senior Training", severity:"critical", stage:"Train", career:"Senior", text:"No structured training for senior professionals. The assumption is they need 1-on-1 support, but no organization systematically provides it beyond ad-hoc advising." },
+    { title:"Active Mobilization (beyond job boards)", severity:"partial", stage:"Mobilize", career:"Mid", text:"Mobilization has improved with Halcyon Futures and Successif offering active matching and mentoring for mid/senior professionals. But structured trial contracts and employer-side placement programs are still absent — most mobilization remains candidate-driven rather than employer-integrated." },
+    { title:"Non-Technical Education (Mid-career)", severity:"partial", stage:"Educate", career:"Mid", text:"BlueDot Governance course exists but is lightweight (reading group format). No programs offer the depth needed for non-technical skills (ops, comms, strategy, legal) applied to AI safety contexts." },
+    { title:"Early-career Mobilization (Structured)", severity:"partial", stage:"Mobilize", career:"Early", text:"Job boards (80k) and alumni networks (BlueDot) exist but are passive. No structured placement, matching, or 'last mile' support from training to employment." },
+    { title:"Explorer-level Training", severity:"partial", stage:"Train", career:"Early", text:"The gap has narrowed with LASR Labs, MARS, and Orion offering explorer-friendly training. But the jump from lightweight courses to intensive fellowships remains steep for most — part-time, flexible-commitment technical training is still rare." },
+    { title:"Non-Technical Training (Early career)", severity:"partial", stage:"Train", career:"Early", text:"Now 5+ non-technical fellowships exist (GovAI, IAPS, Horizon, Talos, Orion) spanning US/UK/EU policy. However, ops, comms, strategy, and legal training for AI safety remains completely absent — all options are policy-track." },
+];
+
+// ─── HELPER FUNCTIONS ────────────────────────────────────────────
+const stageOrder = {"Awareness":1,"Educate":2,"Train":3,"Mobilize":4};
+const stageClass = {"Awareness":"s1","Educate":"s2","Train":"s3","Mobilize":"s4"};
+const stageColor = {"Awareness":"var(--stage1)","Educate":"var(--stage2)","Train":"var(--stage3)","Mobilize":"var(--stage4)"};
+
+function geoClass(geo) {
+    if (geo.includes('UK') || geo.includes('London') || geo.includes('Oxford') || geo.includes('Cambridge')) return 'geo-uk';
+    if (geo.includes('US') || geo.includes('Berkeley') || geo.includes('DC')) return 'geo-us';
+    if (geo.includes('Europe') || geo.includes('EU')) return 'geo-eu';
+    return 'geo-global'; // Online, Global, Various, South Africa, etc.
+}
+
+function getFiltered() {
+    const typeF = document.getElementById('filter-type').value;
+    const geoF = document.getElementById('filter-geo').value;
+    const commitF = document.getElementById('filter-commitment').value;
+    return PROGRAMS.filter(p => {
+        if (typeF !== 'all') {
+            if (typeF === 'technical' && p.talentType === 'non-technical') return false;
+            if (typeF === 'non-technical' && p.talentType === 'technical') return false;
+        }
+        if (geoF !== 'all') {
+            if (!p.geo.includes(geoF)) return false;
+        }
+        if (commitF !== 'all') {
+            if (!p.commitment.includes(commitF)) return false;
+        }
+        return true;
+    });
+}
+
+function gapLevel(programs) {
+    if (programs.length === 0) return 'gap-critical';
+    if (programs.length <= 1) return 'gap-partial';
+    return 'gap-covered';
+}
+
+function gapText(programs) {
+    if (programs.length === 0) return 'No coverage';
+    if (programs.length <= 1) return 'Limited';
+    return '';
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────
+function render() {
+    const data = getFiltered();
+
+    // KPIs — count unique orgs per stage
+    document.getElementById('kpi-s1').textContent = data.filter(p=>p.stage.includes('Awareness')).length;
+    document.getElementById('kpi-s2').textContent = data.filter(p=>p.stage.includes('Educate')).length;
+    document.getElementById('kpi-s3').textContent = data.filter(p=>p.stage.includes('Train')).length;
+    document.getElementById('kpi-s4').textContent = data.filter(p=>p.stage.includes('Mobilize')).length;
+    document.getElementById('program-count').textContent = data.length;
+    document.getElementById('gap-count').textContent = GAPS.filter(g=>g.severity==='critical').length;
+
+    // Matrix
+    const stages = ["Awareness","Educate","Train","Mobilize"];
+    const careers = ["Early","Mid","Senior"];
+    const badgeClass = {"Awareness":"stage1-badge","Educate":"stage2-badge","Train":"stage3-badge","Mobilize":"stage4-badge"};
+    const stageDesc = {
+        "Awareness":"Making people aware of the field",
+        "Educate":"Active education, developing clarity, upskilling",
+        "Train":"Intensive, boots-on-the-ground for people actively pivoting",
+        "Mobilize":"Providing on-ramps to employment and active career entry"
+    };
+
+    let matrixHTML = '';
+    stages.forEach(stage => {
+        matrixHTML += `<div class="matrix-section">
+            <h2><span class="badge ${badgeClass[stage]}">Stage ${stageOrder[stage]}</span> ${stage} <span style="font-weight:400;font-size:13px;color:var(--text-secondary);margin-left:8px">${stageDesc[stage]}</span></h2>
+            <div class="matrix-grid">
+                <div class="matrix-header"></div>
+                <div class="matrix-header">Early Career</div>
+                <div class="matrix-header">Mid-Career</div>
+                <div class="matrix-header">Senior</div>`;
+
+        const commitments = ["Newcomer","Explorer","Committed"];
+        commitments.forEach(commit => {
+            matrixHTML += `<div class="matrix-row-label">${commit}</div>`;
+            careers.forEach(career => {
+                const cellPrograms = data.filter(p =>
+                    p.stage.includes(stage) &&
+                    p.career.includes(career) &&
+                    p.commitment.includes(commit)
+                );
+                // Grey out structurally N/A cells
+                const isNA = (stage === 'Awareness' && commit === 'Committed') ||
+                             (stage === 'Mobilize' && commit === 'Newcomer');
+                const gapClass = isNA ? 'gap-na' : gapLevel(cellPrograms);
+                const gapLbl = isNA ? '' : gapText(cellPrograms);
+                matrixHTML += `<div class="matrix-cell ${gapClass}">`;
+                cellPrograms.forEach(p => {
+                    const gc = geoClass(p.geo);
+                    const geoFlag = gc === 'geo-uk' ? '🇬🇧' :
+                                   gc === 'geo-us' ? '🇺🇸' :
+                                   gc === 'geo-eu' ? '🇪🇺' : '🌐';
+                    matrixHTML += `<span class="program-tag ${gc}"
+                        onmouseenter="showTooltip(event, '${p.name.replace(/'/g,"\\'")}', '${p.desc.replace(/'/g,"\\'")}', '${p.geo}', '${p.format}', '${p.url}')"
+                        onmouseleave="hideTooltip()"
+                        onclick="window.open('${p.url}','_blank')">${p.name} <span class="geo">${geoFlag}</span></span>`;
+                });
+                if (isNA) matrixHTML += `<span class="gap-label" style="color:#94a3b8;opacity:0.8">N/A</span>`;
+                else if (gapLbl) matrixHTML += `<span class="gap-label">${gapLbl}</span>`;
+                matrixHTML += '</div>';
+            });
+        });
+
+        matrixHTML += '</div></div>';
+    });
+    document.getElementById('matrix-container').innerHTML = matrixHTML;
+
+    // Gap cards
+    let gapHTML = '';
+    GAPS.forEach(g => {
+        gapHTML += `<div class="gap-card ${g.severity}">
+            <div class="gap-type">${g.severity === 'critical' ? '⚠ Critical Gap' : '⚡ Partial Gap'} — ${g.stage} × ${g.career}-career</div>
+            <h3>${g.title}</h3>
+            <p>${g.text}</p>
+        </div>`;
+    });
+    document.getElementById('gap-grid').innerHTML = gapHTML;
+
+    // Table
+    renderTable(data);
+}
+
+let sortCol = 'stage', sortDir = 'asc';
+function sortTable(col) {
+    if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    else { sortCol = col; sortDir = 'asc'; }
+    render();
+}
+
+function renderTable(data) {
+    const sorted = [...data].sort((a, b) => {
+        let av, bv;
+        if (sortCol === 'stage') { av = stageOrder[a.stage[0]]; bv = stageOrder[b.stage[0]]; }
+        else if (sortCol === 'career') { av = a.career[0]; bv = b.career[0]; }
+        else if (sortCol === 'commitment') { av = a.commitment[0]; bv = b.commitment[0]; }
+        else { av = a[sortCol] || ''; bv = b[sortCol] || ''; }
+        if (typeof av === 'string') { av = av.toLowerCase(); bv = bv.toLowerCase(); }
+        const cmp = av < bv ? -1 : av > bv ? 1 : 0;
+        return sortDir === 'asc' ? cmp : -cmp;
+    });
+
+    let html = '';
+    sorted.forEach(p => {
+        const stagePills = p.stage.map(s => `<span class="stage-pill ${stageClass[s]}">${s}</span>`).join(' ');
+        html += `<tr>
+            <td><strong><a href="${p.url}" target="_blank" style="color:var(--accent);text-decoration:none">${p.name}</a></strong></td>
+            <td>${p.org}</td>
+            <td>${stagePills}</td>
+            <td>${p.career.join(', ')}</td>
+            <td>${p.commitment.join(', ')}</td>
+            <td><span class="type-dot ${geoClass(p.geo)}"></span>${p.talentType === 'both' ? 'Both' : p.talentType === 'technical' ? 'Technical' : 'Non-Technical'}</td>
+            <td>${p.geo}</td>
+            <td>${p.format}</td>
+        </tr>`;
+    });
+    document.getElementById('table-body').innerHTML = html;
+}
+
+function applyFilters() { render(); }
+
+// Tooltip
+function showTooltip(e, name, desc, geo, format, url) {
+    const t = document.getElementById('tooltip');
+    t.innerHTML = `<div class="tt-name">${name}</div>
+        <div class="tt-detail">${format} · ${geo}</div>
+        <div style="margin-top:6px">${desc}</div>
+        <div class="tt-link" style="margin-top:6px">Click to visit →</div>`;
+    t.style.display = 'block';
+    const x = Math.min(e.clientX + 12, window.innerWidth - 340);
+    const y = Math.min(e.clientY + 12, window.innerHeight - 200);
+    t.style.left = x + 'px';
+    t.style.top = y + 'px';
+}
+function hideTooltip() { document.getElementById('tooltip').style.display = 'none'; }
+
+// Init
+render();
+</script>
+</body>
+</html>
